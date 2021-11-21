@@ -50,7 +50,7 @@ function EIvalue = calEI(nTask, x_test, feasibleFlag, nC, minNorF, minNorG, Mode
                 sigma = sigma + diag(diag(ones(nTask-1,nTask-1)*1e-8));
             end
             if nC == 1     % one constraint  
-                EIvalue(i,:) = integral(@(z) normcdf((z-mu(:,1))/sigma(1,1)), 0, minNorG) - minNorG.*normcdf((0-mu(:,1))/sigma(1,1));
+                EIvalue(i,:) = integral(@(z) normcdf((z-mu(:,1))/sqrt(abs(sigma(1,1)))), 0, minNorG) - minNorG.*normcdf((0-mu(:,1))/sqrt(abs(sigma(1,1))));
             else           % correlated EI (MonteCarlo integration)
                 zSample = rand(1, n)*minNorG;
                 Z       = [];
@@ -58,11 +58,11 @@ function EIvalue = calEI(nTask, x_test, feasibleFlag, nC, minNorF, minNorG, Mode
                 TMP1    = minNorG;
                 TMP2    = minNorG;
                 for t=1:nC
-                    gSample = rand(1,n)*(minNorG - (mu(:,t)-3*sigma(t,t))) + mu(:,t) - 3*sigma(t,t);
+                    gSample = rand(1,n)*(minNorG - (mu(:,t)-3*sqrt(abs(sigma(t,t))))) + mu(:,t) - 3*sqrt(abs(sigma(t,t)));
                     Z       = [Z; gSample];
-                    ind     = ind&(gSample>=mu(:,t)-3*sigma(t,t))&(gSample<=zSample);
-                    TMP1    = TMP1*(minNorG - (mu(:,t)-3*sigma(t,t)));
-                    TMP2    = TMP2*(-(mu(:,t)-3*sigma(t,t)));
+                    ind     = ind&(gSample>=mu(:,t)-3*sqrt(abs(sigma(t,t))))&(gSample<=zSample);
+                    TMP1    = TMP1*(minNorG - (mu(:,t)-3*sqrt(abs(sigma(t,t)))));
+                    TMP2    = TMP2*(-(mu(:,t)-3*sqrt(abs(sigma(t,t)))));
                 end
                 TMP1    = TMP1*sum(MonteCarloFun(Z(:,ind),mu,sigma))/n;
                 TMP2    = TMP2*sum(MonteCarloFun(zeros(nC,1),mu,sigma))/n;
